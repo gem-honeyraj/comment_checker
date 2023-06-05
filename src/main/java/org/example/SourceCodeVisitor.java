@@ -3,58 +3,57 @@ package org.example;
 import org.eclipse.jdt.core.dom.*;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
 public class SourceCodeVisitor extends ASTVisitor{
 
 
-    List<String> misCommentList = new ArrayList<>();
+    ArrayList<String> misCommentList = new ArrayList<>();
+    ArrayList<String> foundCommentList = new ArrayList<>();
+    String commentText="";
+
+
 
     @Override
     public boolean visit(MethodDeclaration node) {
         String methodName = node.getName().getIdentifier();
 
-
         if(methodName.equals("main"))
             return false;
 
-        //to get line number
-//        int lineNumber = node.getStartPosition();
-//        int line = rootNode.getLineNumber(lineNumber);
-
-        Comment comment = getComment(node);
-        if (comment != null) {
-            String commentText = comment.toString();
-            System.out.println("Method: " + methodName);
-            System.out.println("Comment: " + commentText);
-            System.out.println();
+        String className = getClassName(node);
+        String comment = getComment(node);
+        if (!(comment.trim().equals("")) && comment.trim() != null ) {
+            commentText = comment.toString();
+            foundCommentList.add(methodName+":"+className+":"+comment);
         }
 
         else
         {
-            String className = getClassName(node);
-            misCommentList.add("Comment not found before class: "+className+" method: "+methodName);
-          //  throw new RuntimeException("Comment not found before class: "+className+" method: "+methodName);
+            misCommentList.add(methodName+":"+className);
+        //    throw new RuntimeException("Comment not found before class:"+className+"    method:"+methodName);
         }
         return super.visit(node);
     }
 
-    private String getClassName(ASTNode atsNode) {
+    private String getClassName(ASTNode astNode) {
+        //to get line number
+//        int lineNumber = astNode.getStartPosition();
+//        int line = astNode.getLineNumber(lineNumber);
         TypeDeclaration classDeclaration = null;
 
-        while (atsNode != null) {
-            if (atsNode instanceof TypeDeclaration) {
-                classDeclaration= (TypeDeclaration) atsNode;
+        while (astNode != null) {
+            if (astNode instanceof TypeDeclaration) {
+                classDeclaration= (TypeDeclaration) astNode;
             }
-            atsNode = atsNode.getParent();
+            astNode = astNode.getParent();
         }
         return classDeclaration.getName().getIdentifier();
 
     }
 
 
-    private Comment getComment(BodyDeclaration node) {
+    private String getComment(BodyDeclaration node) {
 
       //  List<Comment> comments = ((CompilationUnit) node.getRoot()).getCommentList();
       //  int nodeStartPosition = node.getStartPosition();
@@ -73,12 +72,26 @@ public class SourceCodeVisitor extends ASTVisitor{
         }
 
         */
+
+        String s="";
+
         Comment comment = node.getJavadoc();
-        return comment;
+
+        if(comment!= null) {
+           s= comment.toString().substring(3, comment.toString().length() - 2);
+            return s;
+        }
+        else
+            return s;
     }
 
 
-    public List<String> getMissingCommentList() {
+    public ArrayList<String> getMissingCommentList() {
         return this.misCommentList;
     }
+
+    public ArrayList<String> getFoundCommentList() {
+        return this.foundCommentList;
+    }
+
 }

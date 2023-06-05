@@ -1,33 +1,37 @@
 package org.example;
-import org.eclipse.jdt.core.dom.*;
+
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Testsample {
 
 
+    public static void main(String[] args) {
+        String[] expressions = {
+                "public static By",
+                "public   static    By",
+                "public By",
+                "public By and other text",
+                "pUblic By and other text",
+                "other text public static By"
+        };
 
-        public static void main(String[] args) {
-            String sourceCode = "public class MyClass {\n" +
-                    "    public void method1() {\n" +
-                    "        // Method 1\n" +
-                    "    }\n" +
-                    "    public void method2() {\n" +
-                    "        // Method 2\n" +
-                    "    }\n" +
-                    "}";
+        String pattern = "public\\s*static\\s*By";
 
-            ASTParser parser = ASTParser.newParser(AST.JLS19);
-            parser.setSource(sourceCode.toCharArray());
-            ASTNode rootNode = parser.createAST(null);
+        // Create a pattern
+        Pattern regex = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
 
-            int methodCount = 0;
-            rootNode.accept(new ASTVisitor() {
-                @Override
-                public boolean visit(MethodDeclaration node) {
-                    methodCount=methodCount+1;
-                    return super.visit(node);
-                }
-            });
+        for (String expression : expressions) {
+            // Create a matcher
+            Matcher matcher = regex.matcher(expression);
 
-            System.out.println("Number of methods: " + methodCount);
+            // Use the find method to check if the pattern is found
+            if (matcher.find()) {
+                System.out.println("Pattern found in: " + expression);
+            } else {
+                System.out.println("");
+            }
         }
     }
 
